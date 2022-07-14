@@ -1,3 +1,4 @@
+import { Usuario } from './../models/usuario.model';
 import { environment } from './../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, NgZone } from '@angular/core';
@@ -14,6 +15,7 @@ declare const google :any;
   providedIn: 'root'
 })
 export class UsuarioService {
+  public usuario?:Usuario;
 
   constructor( private http: HttpClient,
              private router:Router,
@@ -26,7 +28,7 @@ export class UsuarioService {
     localStorage.removeItem('token');
     this.router.navigateByUrl('/login');
 
-    google.accounts.id.revoke( 'ariel02041993@gmail.com', () => {
+    google.accounts.id.revoke( this.usuario?.email, () => {
       this.ngZone.run(() => {
         this.router.navigateByUrl('/login');
 
@@ -34,18 +36,35 @@ export class UsuarioService {
     });
   }
 
+  get token(): string {
+    return localStorage.getItem('token') || '';
+  }
+
+  get uid():string {
+    return this.usuario.uid || '';
+  }
+
   validarToken(): Observable<boolean> {
-    const token = localStorage.getItem('token') || '';
+    
 
     return this.http.get(`${ base_url}/login/renew`, {
       headers: {
-        'x-token': token
+        'x-token': this.token
       }
     }).pipe(
-      tap((resp:any) => {
+      map((resp:any) => {
+       
+        const { 
+          email, google,nombre, role, img='', uid
+        } = resp.usuario;
+
+        this.usuario = new Usuario(nombre, email, '', img,role, google,uid);
         localStorage.setItem('token', resp.token);
+
+        console.log(this.usuario);
+        return true;
       }),
-      map( resp => true),
+   
       catchError( error => of(false))
     );
   }
@@ -59,6 +78,20 @@ export class UsuarioService {
               })
             )
 
+  }
+
+  actualizarPerfil( data: { email:string, nombre:string, role: string}) {
+
+    data = {
+      ...data,
+      role: this.usuario.role
+    };
+
+   return this.http.put(`${ base_url }/usuarios/${this.uid}`, data,{
+      headers: {
+        'x-token': this.token
+      }
+    })
   }
 
   login( formData: LoginForm) {
