@@ -15,15 +15,15 @@ export class LoginComponent implements OnInit, AfterViewInit {
 
   @ViewChild('googleBtn') googleBtn?:ElementRef;
 
-  
+
   public formSubmitted = false;
 
   public loginForm = this.fb.group({
-    
+
     email: [localStorage.getItem('email') || '', [Validators.required, Validators.email]],
     password: ['', Validators.required],
     remember: [false]
-    
+
   });
 
   constructor(private router: Router,
@@ -32,12 +32,12 @@ export class LoginComponent implements OnInit, AfterViewInit {
               private ngZone:NgZone) { }
 
               ngOnInit(): void {
-      
-              }            
+
+              }
   ngAfterViewInit(): void {
     this.googleInit();
   }
-  
+
  googleInit() {
 
   google.accounts.id.initialize({
@@ -56,23 +56,29 @@ export class LoginComponent implements OnInit, AfterViewInit {
       .subscribe( resp => {
 
         this.ngZone.run(() => {
-          
+
           console.log( {login: resp});
           this.router.navigateByUrl('/');
-  
+
         })
-      }); 
+      });
 
 }
-  
+
   login() {
 
     console.log( this.loginForm.value);
 
     this.UsuarioService.login( this.loginForm.value)
     .subscribe( resp => {
+
+
+      console.log( this.loginForm.value);
+      localStorage.setItem('session', JSON.stringify(resp));
+
       if ( this.loginForm.get('remember')?.value) {
         localStorage.setItem('email', this.loginForm.get('email')?.value);
+
       } else {
         localStorage.removeItem('email');
       }
@@ -82,7 +88,7 @@ export class LoginComponent implements OnInit, AfterViewInit {
       // si sucede un error
       Swal.fire('Error', err.error.msg, 'error');
     })
-    
+
   }
 
 }

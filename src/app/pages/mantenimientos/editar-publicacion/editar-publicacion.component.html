@@ -1,0 +1,213 @@
+<div class="row p-t-20">
+  <div class="col-lg-10">
+    <div class="card">
+      <div class="card-body">
+
+        <form class="form p-t-20"
+
+        [formGroup]="publicacionForm"
+        (ngSubmit)="crearPublicacion()"
+
+        >
+
+
+
+          <div class="form-group">
+            <label for="exampleInputuname">Titulo</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-text-height" aria-hidden="true"></i>
+              </div>
+              <input
+                type="text"
+                id="title"
+                class="form-control"
+                formControlName="title"
+
+                placeholder="titulo de la publicición"
+                [class.is-invalid]="publicacionForm.get('title').invalid && publicacionForm.get('title').touched"
+
+
+                [(ngModel)]="title"
+                required
+              />
+            </div>
+            <div *ngIf="publicacionForm.get('title').invalid && publicacionForm.get('title').touched" class="text-danger">
+              El campo titulo es obligatorio.
+            </div>
+
+          </div>
+          <div class="form-group">
+            <label for="exampleInputEmail1">Subtitulo</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-text-width" aria-hidden="true"></i>
+              </div>
+              <input
+                type="text"
+                class="form-control"
+                id="caption"
+                [(ngModel)]="caption"
+                formControlName="caption"
+                placeholder="Subtitulo de la publicación"
+                required
+              />
+            </div>
+          </div>
+          <h3>Seleccione Imagen para la portada (Solo si quiere que la publicación tenga portada)</h3>
+          <input type="file" accept="image/png, image/jpeg" (change)="onFileSelectedFront($event)" />
+          <div class="text-center">
+            <div class="text-center">
+              <img
+                *ngFor="let imagen of imagePortada2"
+                [src]="imagen"
+                class="img-avatar p-2"
+              />
+            </div>
+          </div>
+          <br /><br />
+          <div class="form-group">
+            <label for="exampleInputEmail1">Categoria</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-list" aria-hidden="true"></i>
+              </div>
+              <input *ngIf="!category" type="text" class="form-control" placeholder="Elige una categoría" disabled />
+              <select class="form-control" id="category" [(ngModel)]="category"
+              [class.is-invalid]="publicacionForm.get('category').invalid && publicacionForm.get('category').touched"
+              data-placeholder="--Seleccione Categoria--" formControlName="category" required>
+                <option value="" disabled selected>Selecciona una categoría</option>
+                <option value="novedades">Novedades</option>
+                <option value="monitoreo">Monitoreo</option>
+                <option value="acceso-a-la-justicia">Acceso a la justicia</option>
+                <option value="vinculacion">Vinculación</option>
+                <option value="pronuncionamientos">Pronuncionamientos</option>
+                <option value="otras-acciones">Otras acciónes</option>
+                <!-- Agrega más opciones de categoría según tus necesidades -->
+              </select>
+
+            </div>
+            <div *ngIf="publicacionForm.get('category').invalid && publicacionForm.get('category').touched" class="text-danger">
+              El campo categoria es obligatorio.
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="exampleInputEmail1">Fecha</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-calendar" aria-hidden="true"></i>
+              </div>
+              <input
+                type="date"
+                class="form-control"
+                id="date"
+                [(ngModel)]="date"
+                formControlName="date"
+                [class.is-invalid]="publicacionForm.get('date').invalid && publicacionForm.get('date').touched"
+                placeholder="Fecha de la publicación"
+                required
+              />
+            </div>
+            <div *ngIf="publicacionForm.get('date').invalid && publicacionForm.get('date').touched" class="text-danger">
+              El campo fecha es obligatorio.
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="exampleInputEmail1">Slug</label>
+            <div class="input-group">
+              <div class="input-group-addon">
+                <i class="fa fa-google" aria-hidden="true"></i>
+              </div>
+              <input
+                type="text"
+                class="form-control"
+                id="slug"
+                [(ngModel)]="slug"
+                formControlName="slug"
+                [class.is-invalid]="publicacionForm.get('slug').invalid && publicacionForm.get('slug').touched"
+                (blur)="verificarSlugPublication(publicacionForm.controls['slug'].value)"
+                placeholder="Slug de la publicación"
+                required
+              />
+            </div>
+
+            <ng-container *ngIf="(publicacionForm.get('slug').invalid && publicacionForm.get('slug').touched)">
+              <div *ngIf="publicacionForm.get('slug').hasError('required')" class="text-danger">
+                El campo slug es obligatorio.
+              </div>
+              <div *ngIf="publicacionForm.get('slug').hasError('slugIsInvalid')" class="text-danger">
+                El slug ya está registrado en el sistema.
+              </div>
+              <div *ngIf="publicacionForm.get('slug').hasError('pattern')" class="text-danger">
+                El formato del slug es incorrecto.
+              </div>
+
+            </ng-container>
+          </div>
+
+          <div class="form-group" style="height: 120px">
+            <h2>Contenido</h2>
+            <quill-editor
+              id="bodies"
+              type="text"
+              rows="3"
+              placeholder="Ingrese contenido"
+              [(ngModel)]="bodies"
+              [class.is-invalid]="publicacionForm.get('bodies').invalid && publicacionForm.get('bodies').touched"
+              formControlName="bodies"
+            ></quill-editor>
+            <div *ngIf="publicacionForm.get('bodies').invalid && publicacionForm.get('bodies').touched" class="text-danger">
+              El campo de contenido es obligatorio.
+            </div>
+
+          </div>
+
+          <br /><br /><br /><br /><br />
+
+          <h3>Seleccione las imagenes de la publicación</h3>
+          <input type="file" accept="image/png, image/jpeg" (change)="onFileSelected($event)" multiple />
+          <div class="text-center">
+            <img
+              *ngFor="let image of selectedImages"
+              [src]="image"
+              class="img-avatar p-2"
+            />
+          </div>
+          <br /><br />
+
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-default"
+              data-dismiss="modal"
+              (click)="closeModal()"
+            >
+              Cancelar
+            </button>
+            <button
+            type="submit"
+              class="btn btn-primary"
+              [disabled]="publicacionForm.invalid"
+
+            >
+              Editar
+            </button>
+          </div>
+        </form>
+       <!-- <hr>
+        <h3 class="mt-5">Formulario</h3>
+        <pre>Estado formulario: {{publicacionForm.valid}}
+          <br>
+          Status: {{ publicacionForm.status}}
+          {{publicacionForm.get("title").invalid}}
+        </pre>
+        <br>
+        <pre>
+           {{publicacionForm.value | json}}
+        </pre> -->
+
+
+      </div>
+    </div>
+  </div>
+</div>

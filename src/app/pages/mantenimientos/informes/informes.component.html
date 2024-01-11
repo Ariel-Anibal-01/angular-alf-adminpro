@@ -1,0 +1,523 @@
+<div class="row animated fadeIn fast">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Buscar informes..."
+          (keyup)="buscar(txtTermino.value)"
+          #txtTermino
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row animated fadeIn fast" *ngIf="cargando">
+  <div class="col-12">
+    <!-- loading -->
+    <div class="alert alert-info text-center">
+      <h4 class="alert-heading">Cargando</h4>
+      <i class="fa fa-spin fa-refresh fa-2x"></i>
+      <p class="mb-0">Por favor espere</p>
+    </div>
+  </div>
+</div>
+
+<div class="row" *ngIf="!cargando">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-8">
+            <h4 class="card-title">Informes ({{ informes.length }})</h4>
+            <h6 class="card-subtitle">Informes registrados en mi aplicación</h6>
+          </div>
+          <div class="col">
+            <div class="text-right">
+              <button class="btn btn-primary" (click)="openModal()">
+                <i class="fa fa-plus-square" aria-hidden="true"></i>
+                Crear informe
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Titulo</th>
+                <th>Fecha</th>
+                <th>Descripción</th>
+                <th >categoria</th>
+                <th style="width: 100px">Informe</th>
+                <th class="text-nowrap">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let informe of informes">
+                <td>{{ informe.title }}</td>
+                <td>{{ informe.date | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ informe.description }}</td>
+                <td>
+
+                    {{ informe.category }}
+
+                </td>
+                <td>
+                  <ng-container *ngFor="let link of informe.links">
+                    <button
+                      class="btn btn-info text-wrap pb-2"
+                      style="white-space: normal; word-wrap: break-word; width: 170px; height: 110px; margin-bottom: 5px;"
+                      (click)="openExternalUrl(informe.category, link)"
+                    >
+                      {{ link }}
+                    </button>
+                  </ng-container>
+
+                </td>
+
+
+                <td class="text-nowrap">
+                  <a
+
+                    data-toggle="tooltip"
+                    data-original-title="Editar"
+                    class="cursor"
+                    (click)="openModalEditar(informe)"
+                  >
+                    <i class="fa fa-pencil text-inverse m-r-10"></i>
+                  </a>
+                  <a
+
+                    data-toggle="tooltip"
+                    data-original-title="Borrar"
+                    class="cursor"
+                    (click)="clickEliminarModal(informe)"
+                  >
+                    <i class="fa fa-close text-danger"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button (click)="cambiarPagina(-5)" class="btn btn-secondary">Anteriores</button>
+        &nbsp;
+        <button (click)="cambiarPagina(+5)" class="btn btn-secondary">Siguientes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="fondo-modal-imagen oculto fadeIn fast"
+  [ngClass]="{
+    oculto: !modalVisible,
+    fadeIn: modalVisible,
+    fast: modalVisible
+  }"
+>
+  <div
+    class="modal fade show"
+    *ngIf="modalVisible"
+    id="exampleModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="exampleModalLabel1"
+    (hidden.bs.modal)="limpiarCampos()"
+    style="display: block"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="exampleModalLabel1">Crear Informe</h4>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+            (click)="closeModal()"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form
+            class="form p-t-20"
+            [formGroup]="informeForm"
+            (ngSubmit)="crearReports()"
+          >
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-text-height" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="title"
+                  placeholder="Ingrese el titulo"
+                  formControlName="title"
+                  [class.is-invalid]="
+                    informeForm.get('title').invalid &&
+                    informeForm.get('title').touched
+                  "
+                  [(ngModel)]="title"
+                />
+              </div>
+              <div
+                *ngIf="
+                  informeForm.get('title').invalid &&
+                  informeForm.get('title').touched
+                "
+                class="text-danger"
+              >
+                El campo title es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-calendar" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="date"
+                  placeholder="Ingrese la fecha"
+                  formControlName="date"
+                  [class.is-invalid]="
+                    informeForm.get('date').invalid &&
+                    informeForm.get('date').touched
+                  "
+                  [(ngModel)]="date"
+                />
+              </div>
+              <div
+                *ngIf="
+                  informeForm.get('date').invalid &&
+                  informeForm.get('date').touched
+                "
+                class="text-danger"
+              >
+                El campo fecha es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputEmail1">Categoría</label>
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-list" aria-hidden="true"></i>
+                </div>
+                <input
+                  *ngIf="!category"
+                  class="form-control input-sm"
+                  id="category-input"
+                  [(ngModel)]="category"
+                  placeholder="Elige la categoría"
+                  formControlName="category"
+                  required
+                />
+                <select
+                  class="form-control input-lg"
+                  id="category-select"
+                  [(ngModel)]="category"
+                  [class.is-invalid]="
+                    informeForm.get('category').invalid &&
+                    informeForm.get('category').touched
+                  "
+                  data-placeholder="--Seleccione Categoria--"
+                  formControlName="category"
+                  required
+                >
+                  <option value="" disabled selected>Elige la categoría</option>
+                  <option value="reglamento">Reglamento</option>
+                  <option value="opiniones-tecnicas">Opiniones Tecnicas</option>
+                  <option value="informes-anuales">Informes Anuales</option>
+                  <option value="provinciales">Provinciales</option>
+                  <option value="nacionales">Nacionales</option>
+                  <option value="internacionales">Internacionales</option>
+                  <option value="sentencia-de-interes">Sentencia de Interes</option>
+                  <option value="archivos">Archivos</option>
+                  <!-- Agrega más opciones de categoría según tus necesidades -->
+                </select>
+              </div>
+              <div
+                *ngIf="
+                  informeForm.get('category').invalid &&
+                  informeForm.get('category').touched
+                "
+                class="text-danger"
+              >
+                El campo categoría es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+
+              <textarea
+                class="form-control"
+                id="description"
+                rows="3"
+                placeholder="Ingrese la descripción"
+                formControlName="description"
+                [class.is-invalid]="
+                  informeForm.get('description').invalid &&
+                  informeForm.get('description').touched
+                "
+                [(ngModel)]="description"
+              ></textarea>
+              <div
+                *ngIf="
+                  informeForm.get('description').invalid &&
+                  informeForm.get('description').touched
+                "
+                class="text-danger"
+              >
+                El campo descripción es obligatorio.
+              </div>
+            </div>
+
+            <h3>Seleccione los archivos</h3>
+
+            <input type="file" accept="application/pdf" id="myFileInput" (change)="onFileSelectedInforme($event)" multiple/>
+
+
+
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-default"
+                data-dismiss="modal"
+                (click)="closeModal()"
+              >
+                Cancelar
+              </button>
+              <button *ngIf="!editar" type="submit"
+              class="btn btn-primary"
+              [disabled]="informeForm.invalid">Crear</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div
+  class="fondo-modal-imagen oculto fadeIn fast"
+  [ngClass]="{
+    oculto: !modalVisibleEditar,
+    fadeIn: modalVisibleEditar,
+    fast: modalVisibleEditar
+  }"
+>
+  <div
+    class="modal fade show"
+    *ngIf="modalVisibleEditar"
+    id="exampleModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="exampleModalLabel1"
+    (hidden.bs.modal)="limpiarCampos()"
+    style="display: block"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="exampleModalLabel1">Editar Informe</h4>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+            (click)="closeModalEditar()"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form
+            class="form p-t-20"
+            [formGroup]="informeForm"
+            (ngSubmit)="editarReports()"
+          >
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-text-height" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="title"
+                  placeholder="Ingrese el titulo"
+                  formControlName="title"
+                  [class.is-invalid]="
+                    informeForm.get('title').invalid &&
+                    informeForm.get('title').touched
+                  "
+                  [(ngModel)]="title"
+                />
+              </div>
+              <div
+                *ngIf="
+                  informeForm.get('title').invalid &&
+                  informeForm.get('title').touched
+                "
+                class="text-danger"
+              >
+                El campo title es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-calendar" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="date"
+                  class="form-control"
+                  id="date"
+                  placeholder="Ingrese la fecha"
+                  formControlName="date"
+                  [class.is-invalid]="
+                    informeForm.get('date').invalid &&
+                    informeForm.get('date').touched
+                  "
+
+                  [(ngModel)]="date"
+                />
+              </div>
+              <div
+                *ngIf="
+                  informeForm.get('date').invalid &&
+                  informeForm.get('date').touched
+                "
+                class="text-danger"
+              >
+                El campo fecha es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="exampleInputEmail1">Categoría</label>
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-list" aria-hidden="true"></i>
+                </div>
+                <input
+                  *ngIf="!category"
+                  class="form-control input-sm"
+                  id="category-input"
+                  [(ngModel)]="category"
+                  placeholder="Elige la categoría"
+                  formControlName="category"
+                  required
+                />
+                <select
+                  class="form-control input-lg"
+                  id="category-select"
+                  [(ngModel)]="category"
+                  [class.is-invalid]="
+                    informeForm.get('category').invalid &&
+                    informeForm.get('category').touched
+                  "
+                  data-placeholder="--Seleccione Categoria--"
+                  formControlName="category"
+                  required
+                >
+                  <option value="" disabled selected>Elige la categoría</option>
+                  <option value="reglamento">Reglamento</option>
+                  <option value="opiniones-tecnicas">Opiniones Tecnicas</option>
+                  <option value="informes-anuales">Informes Anuales</option>
+                  <option value="provinciales">Provinciales</option>
+                  <option value="nacionales">Nacionales</option>
+                  <option value="internacionales">Internacionales</option>
+                  <option value="sentencia-de-interes">Sentencia de Interes</option>
+                  <option value="archivos">Archivos</option>
+                  <!-- Agrega más opciones de categoría según tus necesidades -->
+                </select>
+              </div>
+              <div
+                *ngIf="
+                  informeForm.get('category').invalid &&
+                  informeForm.get('category').touched
+                "
+                class="text-danger"
+              >
+                El campo categoría es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+
+              <textarea
+                class="form-control"
+                id="description"
+                rows="3"
+                placeholder="Ingrese la descripción"
+                formControlName="description"
+                [class.is-invalid]="
+                  informeForm.get('description').invalid &&
+                  informeForm.get('description').touched
+                "
+                [(ngModel)]="description"
+              ></textarea>
+              <div
+                *ngIf="
+                  informeForm.get('description').invalid &&
+                  informeForm.get('description').touched
+                "
+                class="text-danger"
+              >
+                El campo descripción es obligatorio.
+              </div>
+            </div>
+
+            <h3>Seleccione los archivos</h3>
+
+            <input type="file" accept="application/pdf" id="myFileInput" (change)="onFileSelectedInforme($event)" multiple/> <br>
+
+            <ng-container class="pt-2 pb-2 m-2" *ngFor="let link of linksEdid">
+              <button
+                class="btn btn-info text-wrap p-2 m-2"
+                style="white-space: normal; word-wrap: break-word; width: 170px; height: 110px; margin-bottom: 5px;"
+                (click)="openExternalUrl(category, link)"
+                [disabled]="true"
+              >
+                {{ link }}
+              </button>
+            </ng-container>
+
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-default"
+                data-dismiss="modal"
+                (click)="closeModalEditar()"
+              >
+                Cancelar
+              </button>
+              <button *ngIf="!editar" type="submit"
+              class="btn btn-primary"
+              [disabled]="informeForm.invalid">Editar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

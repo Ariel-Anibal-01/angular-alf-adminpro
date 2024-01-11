@@ -11,11 +11,7 @@ export class SidebarService {
       icono: 'mdi mdi-gauge',
       submenu: [
         { titulo: 'Main', url: '/'},
-        { titulo: 'ProgressBar', url: 'progress'},
-        { titulo: 'Account-settings', url:'account-settings'},
-        { titulo: 'Gráficas', url: 'grafical'},
-        { titulo: 'Promesas', url: 'promesas'},
-        { titulo: 'Rxjs', url: 'rxjs'}
+
       ]
     },
     {
@@ -23,9 +19,9 @@ export class SidebarService {
       icono: 'mdi mdi-folder-lock-open',
       submenu: [
         { titulo: 'Usuarios', url: 'usuarios'},
-        { titulo: 'Hospitales', url:'hospitales'},
-        { titulo: 'Médicos', url: 'medicos'},
-        
+        { titulo: 'Publicaciones', url:'publicaciones'},
+        { titulo: 'Informes', url: 'informes'},
+
       ]
     },
   ]

@@ -6,10 +6,9 @@ import { PagesModule } from './pages/pages.module';
 
 import { AppComponent } from './app.component';
 
-
-
-
+import { QuillModule } from 'ngx-quill';
 import { AppRoutingModule } from './app-routing.module';
+
 import { AuthModule } from './auth/auth.module';
 import { NopagefoundComponent } from './nopagefound/nopagefound.component';
 
@@ -19,13 +18,15 @@ import { NopagefoundComponent } from './nopagefound/nopagefound.component';
     AppComponent,
     NopagefoundComponent,
 
+
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     PagesModule,
     AuthModule,
-     
+    QuillModule.forRoot()
+
   ],
   providers: [],
   bootstrap: [AppComponent]

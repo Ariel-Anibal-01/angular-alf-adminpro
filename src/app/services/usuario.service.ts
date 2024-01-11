@@ -42,7 +42,7 @@ export class UsuarioService {
   }
 
   get uid():string {
-    return this.usuario.uid || '';
+    return this.usuario._id || '';
   }
 
   get headers() {
@@ -54,7 +54,7 @@ export class UsuarioService {
   }
 
   validarToken(): Observable<boolean> {
-    
+
 
     return this.http.get(`${ base_url}/login/renew`, {
       headers: {
@@ -62,8 +62,8 @@ export class UsuarioService {
       }
     }).pipe(
       map((resp:any) => {
-       
-        const { 
+
+        const {
           email, google,nombre, role, img='', uid
         } = resp.usuario;
 
@@ -73,20 +73,26 @@ export class UsuarioService {
         console.log(this.usuario);
         return true;
       }),
-   
+
       catchError( error => of(false))
     );
   }
-  
+
   crearUsuario( formData: RegisterForm){
-    
-    return this.http.post(`${ base_url}/usuarios`, formData)
+
+    return this.http.post(`${ base_url}/users`, formData)
             .pipe(
               tap( (resp: any) => {
                 localStorage.setItem('token', resp.token)
               })
             )
 
+  }
+  crearUser(usuario: Usuario) {
+    console.log(usuario);
+    const url = `${base_url}/users`;
+
+    return this.http.post(url, usuario, this.headers);
   }
 
   actualizarPerfil( data: { email:string, nombre:string, role: string}) {
@@ -96,7 +102,7 @@ export class UsuarioService {
       role: this.usuario.role
     };
 
-   return this.http.put(`${ base_url }/usuarios/${this.uid}`, data, this.headers);
+   return this.http.put(`${ base_url }/users/${this.uid}`, data, this.headers);
   }
 
   login( formData: LoginForm) {
@@ -119,16 +125,16 @@ export class UsuarioService {
   }
 
   cargarUsuarios( desde: number = 0){
-   
-    const url = `${ base_url}/usuarios?desde=${ desde }`;
+
+    const url = `${ base_url}/users?desde=${ desde }`;
 
     return this.http.get<CargarUsuario>( url,  this.headers )
             .pipe(
               delay(1000),
               map( resp => {
-                     
-                const usuarios = resp.usuarios.map( 
-                  user => new Usuario(user.nombre, user.email, '', user.img, user.role, user.google, user.uid)
+
+                const usuarios = resp.usuarios.map(
+                  user => new Usuario(user.name,user.password,user.dni,user.role,user.email,user.phone,user.home,user.img , user._id)
                   );
                 return {
                   total: resp.total,
@@ -139,10 +145,10 @@ export class UsuarioService {
   }
 
   eliminarUsuario( usuario: Usuario) {
-   
-    const url = `${ base_url }/usuarios/${ usuario.uid }`;
+
+    const url = `${ base_url }/users/${ usuario._id }`;
     return this.http.delete( url , this.headers);
-    
+
   }
 
   guardarUsuario( usuario: Usuario) {
@@ -152,7 +158,7 @@ export class UsuarioService {
       role: this.usuario.role
     }; */
 
-   return this.http.put(`${ base_url }/usuarios/${usuario.uid}`, usuario, this.headers);
+   return this.http.put(`${ base_url }/users/${usuario._id}`, usuario, this.headers);
   }
 
 

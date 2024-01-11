@@ -1,0 +1,221 @@
+<div class="row animated fadeIn fast">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Buscar publicación por titulo"
+          (keyup)="buscar(txtTermino.value)"
+          #txtTermino
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row animated fadeIn fast" *ngIf="cargando">
+  <div class="col-12">
+    <!-- loading -->
+    <div class="alert alert-info text-center">
+      <h4 class="alert-heading">Cargando</h4>
+      <i class="fa fa-spin fa-refresh fa-2x"></i>
+      <p class="mb-0">Por favor espere</p>
+    </div>
+  </div>
+</div>
+
+<div class="row" *ngIf="!cargando">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <div class="row">
+          <div class="col-8">
+            <h4 class="card-title">
+              Publicaciones ({{ publicaciones.length }})
+            </h4>
+            <h6 class="card-subtitle">
+              Publicaciones registradas en mi aplicación
+            </h6>
+          </div>
+          <div class="col">
+            <div class="text-right">
+              <button
+                class="btn btn-primary"
+                (click)="redirectToCrearPublicacion()"
+              >
+                <i class="fa fa-plus-square" aria-hidden="true"></i>
+                Crear publicación
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Titulo</th>
+                <th>Subtitulo</th>
+                <th class="w240">Contenido</th>
+                <th style="width: 240px">Images</th>
+                <th class="text-nowrap">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let publicacion of publicaciones">
+                <td>
+                  {{ publicacion.title }}
+                </td>
+                <td>
+                  {{ publicacion.caption }}
+                </td>
+                <td>
+                  <div [innerHTML]="publicacion.bodies"></div>
+                  <br />
+                </td>
+                <td>
+                  <img
+                    *ngFor="let image of publicacion.images"
+                    [src]="image | imagen : publicacion.category"
+                    [alt]="publicacion.title"
+                    class="avatar cursor"
+                  />
+                </td>
+
+                <td class="text-nowrap">
+                  <a
+                    data-toggle="tooltip"
+                    data-original-title="Editar"
+                    class="cursor"
+                    (click)="redirectToEditarPublicacion(publicacion._id)"
+                  >
+                    <i class="fa fa-pencil text-inverse m-r-10"></i>
+                  </a>
+
+                  <a
+                    data-toggle="tooltip"
+                    data-original-title="Borrar"
+                    class="cursor"
+                    (click)="clickEliminarModal(publicacion)"
+                  >
+                    <i class="fa fa-close text-danger"></i>
+                  </a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <button (click)="cambiarPagina(-5)" class="btn btn-secondary">
+          Anteriores
+        </button>
+        &nbsp;
+        <button (click)="cambiarPagina(+5)" class="btn btn-secondary">
+          Siguientes
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  class="fondo-modal-imagen oculto fadeIn fast"
+  [ngClass]="{
+    oculto: !modalVisible,
+    fadeIn: modalVisible,
+    fast: modalVisible
+  }"
+>
+  <div
+    class="modal fade show"
+    *ngIf="modalVisible"
+    id="exampleModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="exampleModalLabel1"
+    style="display: block"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="exampleModalLabel1">Crear publicación</h4>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+            (click)="closeModal()"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              id="name"
+              placeholder="Ingrese el nombre"
+              [(ngModel)]="name"
+            />
+          </div>
+
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              id="qualification"
+              placeholder="Ingrese el titulo"
+              [(ngModel)]="qualification"
+            />
+          </div>
+          <div class="form-group">
+            <input
+              type="text"
+              class="form-control"
+              id="caption"
+              placeholder="Ingrese subtitulo"
+              [(ngModel)]="caption"
+            />
+          </div>
+
+          <div class="form-group">
+            <textarea
+              class="form-control"
+              id="bodies"
+              rows="3"
+              placeholder="Ingrese contenido"
+              [(ngModel)]="bodies"
+            ></textarea>
+          </div>
+
+          <h3>Seleccione las imagenes</h3>
+
+          <div class="text-center">
+            <img
+              *ngFor="let image of selectedImages"
+              [src]="image"
+              class="avatar"
+            />
+          </div>
+
+          <input type="file" (change)="onFileSelected($event)" multiple />
+        </div>
+
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-default"
+            data-dismiss="modal"
+            (click)="closeModal()"
+          >
+            Cancelar
+          </button>
+          <button type="button" class="btn btn-primary">Crear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

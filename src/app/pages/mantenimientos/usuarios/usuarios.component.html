@@ -2,17 +2,17 @@
     <div class="col-12">
       <div class="card">
         <div class="card-body">
-             
-            <!-- 
+
+            <!--
                 (keydow): se dispara cuando se presiona una tecla
                 (keyup): se dispara cuando suelta la tecla
              -->
             <input type="text"
                     class="form-control"
-                    placeholder="Buscar usuario..."
+                    placeholder="Buscar usuario por nombre"
                     (keyup)="buscar(txtTermino.value)"
                     #txtTermino/>
-              
+
         </div>
       </div>
     </div>
@@ -22,7 +22,7 @@
   <div class="row animated fadeIn fast"
         *ngIf="cargando">
     <div class="col-12">
-         
+
         <!-- loading -->
         <div class="alert alert-info text-center">
             <h4 class="alert-heading">Cargando</h4>
@@ -31,7 +31,7 @@
         </div>
 
 
-   
+
     </div>
   </div>
   <!-- fin del loading -->
@@ -40,58 +40,66 @@
     <div class="col-12">
         <div class="card">
             <div class="card-body">
-                <h4 class="card-title">Total de usuarios ({{ totalUsuarios}}) - {{ desde }}</h4>
-                <h6 class="card-subtitle">Usuarios registrados en mi aplicación</h6>
+
+              <div class="row">
+                <div class="col-8">
+                  <h4 class="card-title">
+                    Total de usuarios ({{ totalUsuarios}}) - {{ desde }}
+
+                  </h4>
+                  <h6 class="card-subtitle">
+                    Usuarios registrados en mi aplicación
+                  </h6>
+                </div>
+                <div class="col">
+                  <div class="text-right">
+                    <button class="btn btn-primary" *ngIf="userRole === 'ADMIN_USER'" (click)="openModal()">
+                      <i class="fa fa-plus-square" aria-hidden="true"></i>
+                      Crear Usuario
+                    </button>
+
+                  </div>
+                </div>
+              </div>
+
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
                             <tr>
-                                <th class="w100">Avatar</th>
-                                <th>Correo</th>
-                                <th>Nombre</th>
-                                <th class="w140">Role</th>
-                                <th class="w100">Auth</th>
-                                <th class="text-nowrap w100">Acciones</th>
+                                <th >Nombre</th>
+                                <th>DNI</th>
+                                <th class="w140">Correo</th>
+                                <th>telefono</th>
+                                <th >Rol</th>
+                                <th *ngIf="userRole === 'ADMIN_USER'" class="text-nowrap w100">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr *ngFor="let usuario of usuarios">
-                                <td>
-                                    <img src="{{ usuario.imagenUrl }}" 
-                                    class="avatar text-center cursor" 
-                                    alt="Avatar de usuario"
-                                    (click)="abrirModal(usuario)">
-                                </td>
+                                <td> {{ usuario.name }}</td>
+                                <td> {{ usuario.dni }}</td>
                                 <td>{{ usuario.email }}</td>
-                                <td>{{ usuario.nombre }}</td>
+                                <td> {{ usuario.phone }}</td>
                                 <td>
-                                    <select class="form-control"
-                                    [(ngModel)]="usuario.role"
-                                     (change)="cambiarRole( usuario)">
-                                        <option value="ADMIN_ROLE">Admin</option>
-                                        <option value="USER_ROLE">User</option>
-                                    </select>
-                                    <!-- {{ usuario.role }} -->
+
+                                    {{ usuario.role }}
                                 </td>
-                                <td>
-                                    <span  *ngIf="usuario.google" class="label label-danger">Google</span>
-                                    <span  *ngIf="!usuario.google" class="label label-info">Email</span>
-                                </td>
-                                
-                                
-                                <td class="text-nowrap text-center">
+
+
+
+                                <td *ngIf="userRole === 'ADMIN_USER'" class="text-nowrap text-center">
                                    <!--  <a href="#" data-toggle="tooltip" data-original-title="Editar"> <i class="fa fa-pencil text-inverse m-r-10"></i> </a> -->
-                                    <a  data-toggle="tooltip" 
+                                    <a  data-toggle="tooltip"
                                     data-original-title="Borrar"
                                     class="cursor"
                                     (click)="eliminarUsuario(usuario)"
                                     > <i class="fa fa-close text-danger"></i> </a>
                                 </td>
                             </tr>
-                           
-                           
-                           
-                            
+
+
+
+
                         </tbody>
                     </table>
                 </div>
@@ -102,85 +110,260 @@
                     <button (click)="cambiarPagina(+5)" class="btn btn-secondary">Siguientes</button>
                 </div>
 
-                
+
             </div>
         </div>
     </div>
   </div>
 
-<!-- <div class="row animated fadeIn fast">
-    <div class="col-12">
-      <div class="card">
-        <div class="card-body">
-             
-            <input type="text"
-                    class="form-control"
-                    placeholder="Buscar usuario..."/>
-              
+
+  <div
+  class="fondo-modal-imagen oculto fadeIn fast"
+  [ngClass]="{
+    oculto: !modalVisible,
+    fadeIn: modalVisible,
+    fast: modalVisible
+  }"
+>
+  <div
+    class="modal fade show"
+    *ngIf="modalVisible"
+    id="exampleModal"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="exampleModalLabel1"
+    (hidden.bs.modal)="limpiarCampos()"
+    style="display: block"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="exampleModalLabel1">Crear usuario</h4>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+            (click)="closeModal()"
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <form
+            class="form p-t-20"
+            [formGroup]="usuarioForm"
+            (ngSubmit)="crearUsuario()"
+          >
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-user" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="nombre"
+                  placeholder="Ingrese el nombre"
+                  formControlName="nombre"
+                  [class.is-invalid]="
+                  usuarioForm.get('nombre').invalid &&
+                  usuarioForm.get('nombre').touched"
+                  [(ngModel)]="nombre"
+                />
+              </div>
+              <div
+                *ngIf="
+                usuarioForm.get('nombre').invalid &&
+                usuarioForm.get('nombre').touched"
+                class="text-danger"
+              >
+                El campo nombre es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-id-card-o" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="DNI"
+                  placeholder="Ingrese el DNI"
+                  formControlName="DNI"
+                  [class.is-invalid]="
+                  usuarioForm.get('DNI').invalid &&
+                  usuarioForm.get('DNI').touched"
+                  [(ngModel)]="DNI"
+                />
+              </div>
+              <div
+                *ngIf="
+                usuarioForm.get('DNI').invalid &&
+                usuarioForm.get('DNI').touched"
+                class="text-danger"
+              >
+                El campo DNI es obligatorio.
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-envelope-o" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="email"
+                  placeholder="Ingrese el correo"
+                  formControlName="email"
+                  [(ngModel)]="email"
+                  [class.is-invalid]="
+                  usuarioForm.get('email').invalid &&
+                  usuarioForm.get('email').touched"
+
+                />
+              </div>
+              <div
+                *ngIf="
+                usuarioForm.get('email').invalid &&
+                usuarioForm.get('email').touched
+                "
+                class="text-danger"
+              >
+                El campo correo es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-list" aria-hidden="true"></i>
+                </div>
+                <input
+                  *ngIf="!category"
+                  class="form-control input-sm"
+                  id="category-input"
+                  [(ngModel)]="category"
+                  placeholder="Elige el rol"
+                  formControlName="category"
+                  required
+                />
+                <select
+                  class="form-control input-lg"
+                  id="category-select"
+                  [(ngModel)]="category"
+                  [class.is-invalid]="
+                  usuarioForm.get('category').invalid &&
+                  usuarioForm.get('category').touched
+                  "
+                  data-placeholder="--Seleccione el rol--"
+                  formControlName="category"
+                  required
+                >
+                  <option value="" disabled selected>Seleccione el rol</option>
+                  <option value="USER_ROLE">USER_ROLE</option>
+                  <option value="ADMIN_USER">ADMIN_USER</option>
+
+                  <!-- Agrega más opciones de categoría según tus necesidades -->
+                </select>
+              </div>
+              <div
+                *ngIf="
+                usuarioForm.get('category').invalid &&
+                usuarioForm.get('category').touched
+                "
+                class="text-danger"
+              >
+                El campo categoría es obligatorio.
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-phone-square" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="telefono"
+                  placeholder="Ingrese el telefono"
+                  formControlName="telefono"
+
+                  [(ngModel)]="telefono"
+                />
+              </div>
+
+            </div>
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-unlock-alt" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  placeholder="Ingrese la contraseña"
+                  formControlName="password"
+                  [class.is-invalid]="
+                  usuarioForm.get('password').invalid &&
+                  usuarioForm.get('password').touched
+                  "
+                  [(ngModel)]="password"
+                />
+              </div>
+              <div
+                *ngIf="
+                usuarioForm.get('password').invalid &&
+                usuarioForm.get('password').touched
+                "
+                class="text-danger"
+              >
+                El campo contraseña es obligatorio.
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="input-group">
+                <div class="input-group-addon">
+                  <i class="fa fa-home" aria-hidden="true"></i>
+                </div>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="domicilio"
+                  placeholder="Ingrese el domicilio"
+                  formControlName="domicilio"
+
+                  [(ngModel)]="domicilio"
+                />
+              </div>
+
+            </div>
+
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-default"
+                data-dismiss="modal"
+                (click)="closeModal()"
+              >
+                Cancelar
+              </button>
+
+              <button type="submit"
+              class="btn btn-primary"
+              [disabled]="usuarioForm.invalid">Crear</button>
+
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
-
-  <div class="row animated fadeIn fast">
-    <div class="col-12">
-         
-     
-        <div class="alert alert-info text-center">
-            <h4 class="alert-heading">Cargando</h4>
-            <i class="fa fa-spin fa-refresh fa-2x"></i>
-            <p class="mb-0">Por favor espere</p>
-        </div>
-
-
-   
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body">
-                <h4 class="card-title">Usuarios</h4>
-                <h6 class="card-subtitle">Usuarios registrados en mi aplicación</h6>
-                <div class="table-responsive">
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Avatar</th>
-                                <th>Correo</th>
-                                <th>Nombre</th>
-                                <th>Role</th>
-                                <th>Auth</th>
-                                <th class="text-nowrap">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Lunar probe project</td>
-                                <td>Lunar probe project</td>
-                                <td>Lunar probe project</td>
-                                <td>Lunar probe project</td>
-                                <td>Lunar probe project</td>
-                                
-                                
-                                <td class="text-nowrap">
-                                    <a href="#" data-toggle="tooltip" data-original-title="Editar"> <i class="fa fa-pencil text-inverse m-r-10"></i> </a>
-                                    <a href="#" data-toggle="tooltip" data-original-title="Borrar"> <i class="fa fa-close text-danger"></i> </a>
-                                </td>
-                            </tr>
-                           
-                           
-                           
-                            
-                        </tbody>
-                    </table>
-                </div>
-
-                <button class="btn btn-secondary">Anteriores</button>
-                &nbsp;
-                <button class="btn btn-secondary">Siguientes</button>
-            </div>
-        </div>
-    </div>
-  </div> -->
+</div>
